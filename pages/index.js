@@ -1,4 +1,5 @@
 import MeetupList from "./../components/meetups/MeetupList";
+import { getStaticPaths } from "./[meetupId]/index";
 
 const DUMMY_MEETUPS = [
   {
@@ -28,6 +29,7 @@ export const getStaticProps = () => {
     props: {
       meetups: DUMMY_MEETUPS,
     },
+    revalidate: 1,
   };
 };
 
