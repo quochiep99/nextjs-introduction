@@ -10,6 +10,7 @@ const handler = async (req, res) => {
     await meetupsCollection.insertOne(newMeetup);
 
     res.status(201).json({ message: "meetup inserted" });
+    client.close();
   }
 };
 export default handler;
