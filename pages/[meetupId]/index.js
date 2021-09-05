@@ -1,6 +1,7 @@
 import { useRouter } from "next/dist/client/router";
 import MeetupDetail from "../../components/meetups/MeetupDetail";
 import { MongoClient, ObjectId } from "mongodb";
+import Head from "next/head";
 
 const DUMMY_MEETUPS = [
   {
@@ -22,21 +23,29 @@ const DUMMY_MEETUPS = [
 ];
 
 const MeetupDetails = (props) => {
-  const meetup = props.foundMeetup;
+  const meetup = props.foundMeetup;  
   const router = useRouter();
   if (router.isFallback) {
     return <div>Loading...</div>;
   }
 
-  return meetup ? (
-    <MeetupDetail
-      image={meetup.image}
-      title={meetup.title}
-      address={meetup.address}
-      description={meetup.description}
-    />
-  ) : (
-    <p>404</p>
+  return (
+    <>
+      <Head>
+        <title>{meetup.title}</title>
+        <meta name="description" content={meetup.description} />
+      </Head>
+      {meetup ? (
+        <MeetupDetail
+          image={meetup.image}
+          title={meetup.title}
+          address={meetup.address}
+          description={meetup.description}
+        />
+      ) : (
+        <p>404</p>
+      )}
+    </>
   );
 };
 
@@ -78,7 +87,10 @@ export const getStaticProps = async (context) => {
 
   return {
     props: {
-      foundMeetup,
+      foundMeetup: {
+        ...foundMeetup,
+        _id: foundMeetup._id.toString(),
+      },
     },
   };
 };
