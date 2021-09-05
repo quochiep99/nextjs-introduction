@@ -1,5 +1,6 @@
 import { useRouter } from "next/dist/client/router";
 import MeetupDetail from "../../components/meetups/MeetupDetail";
+import { MongoClient, ObjectId } from "mongodb";
 
 const DUMMY_MEETUPS = [
   {
@@ -21,51 +22,63 @@ const DUMMY_MEETUPS = [
 ];
 
 const MeetupDetails = (props) => {
-  const meetupFoundById = props.meetupFoundById;
+  const meetup = props.foundMeetup;
   const router = useRouter();
   if (router.isFallback) {
     return <div>Loading...</div>;
   }
 
-  return meetupFoundById ? (
+  return meetup ? (
     <MeetupDetail
-      image={meetupFoundById.image}
-      title={meetupFoundById.title}
-      address={meetupFoundById.address}
-      description={meetupFoundById.description}
+      image={meetup.image}
+      title={meetup.title}
+      address={meetup.address}
+      description={meetup.description}
     />
   ) : (
     <p>404</p>
   );
 };
 
-export const getStaticPaths = () => {
+export const getStaticPaths = async () => {
+  const client = await MongoClient.connect(
+    "mongodb+srv://hiep123:hiep123@cluster0.bepv1.mongodb.net/meetups?retryWrites=true&w=majority"
+  );
+
+  const db = client.db();
+  const meetupsCollection = db.collection("meetups");
+  const foundMeetups = await meetupsCollection.find().toArray();
+
+  const paths = foundMeetups.map((meetup) => ({
+    params: {
+      meetupId: meetup._id.toString(),
+    },
+  }));
+
+  client.close();
   return {
-    paths: [
-      {
-        params: {
-          meetupId: "m1",
-        },
-      },
-      {
-        params: {
-          meetupId: "m2",
-        },
-      },
-    ],
+    paths: paths,
     fallback: true,
   };
 };
 
-export const getStaticProps = (context) => {
+export const getStaticProps = async (context) => {
   const meetupId = context.params.meetupId;
-  const meetupFoundById = DUMMY_MEETUPS.find(
-    (meetup) => meetup.id === meetupId
+  const client = await MongoClient.connect(
+    "mongodb+srv://hiep123:hiep123@cluster0.bepv1.mongodb.net/meetups?retryWrites=true&w=majority"
   );
+
+  const db = client.db();
+  const meetupsCollection = db.collection("meetups");
+  const foundMeetup = await meetupsCollection.findOne({
+    _id: ObjectId(meetupId),
+  });
+
+  client.close();
 
   return {
     props: {
-      meetupFoundById: meetupFoundById ? meetupFoundById : null,
+      foundMeetup,
     },
   };
 };
